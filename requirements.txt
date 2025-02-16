@@ -1,7 +1,7 @@
 dash==2.18.2
 dash_ag_grid==31.3.0
 dash_iconify==0.1.2
-dash_mantine_components==0.12.0
+dash_mantine_components==0.15.3
 pandas==2.2.3
 plotly==6.0.0
 python-dotenv==1.0.1

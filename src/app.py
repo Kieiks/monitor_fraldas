@@ -6,7 +6,7 @@ from utils import tratamento
 from utils import enviar_mail
 import plotly.graph_objects as go
 _dash_renderer._set_react_version("18.2.0")
-# dmc.add_figure_templates()
+dmc.add_figure_templates()
 
 app = Dash(external_stylesheets=dmc.styles.ALL)
 server = app.server
@@ -14,8 +14,6 @@ server = app.server
 #### IMPORTAR DADOS E CRIAR DATAFRAME GRAFICO ####
 df = tratamento.merged()
 df_max = df.groupby("timestamp")['UNIDADE'].min().reset_index()
-
-print(df_max)
 
 lowest_price_all = df_max.sort_values('timestamp').iloc[-1]['UNIDADE']
 
