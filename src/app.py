@@ -6,7 +6,7 @@ from utils import tratamento
 from utils import enviar_mail
 import plotly.graph_objects as go
 _dash_renderer._set_react_version("18.2.0")
-dmc.add_figure_templates()
+# dmc.add_figure_templates()
 
 app = Dash(external_stylesheets=dmc.styles.ALL)
 server = app.server
