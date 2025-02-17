@@ -144,11 +144,12 @@ def best_deal():
     )
 
     df_grid = last_day.loc[idxmin]
+    df_grid['GRID_LINK'] = '['+df_grid['QUALIDADE']+']('+df_grid['URL']+')'
+    df_grid.sort_values('UNIDADE', inplace=True)
     # Define AG Grid Columns
     columns = [
-        # {"headerCheckboxSelection": True, "checkboxSelection": True, "headerName": "", "field": "checkbox", "width": 50},  # ✅ Checkbox Column
         {"headerName": "MARCA", "field": "MARCA"},
-        {"headerName": "QUALIDADE", "field": "QUALIDADE"},
+        {"headerName": "QUALIDADE", "field": "GRID_LINK", "linkTarget": "_blank"},
         {"headerName": "UNIDADE", "field": "UNIDADE", "type": "numericColumn"},
     ]
 
@@ -157,7 +158,7 @@ def best_deal():
             rowData=df_grid.to_dict("records"),
             columnDefs=columns,
             columnSize='autoSize',
-            defaultColDef={"sortable": True, "filter": False, "resizable": False, "cellStyle": {"fontSize": "12px"}},
+            defaultColDef={"sortable": True, "filter": False, "resizable": False, "cellStyle": {"fontSize": "12px"}, "cellRenderer": "markdown"},
             dashGridOptions={"domLayout": "autoHeight"},
             className="ag-theme-alpine",
             style={"fontSize": "12px"},
