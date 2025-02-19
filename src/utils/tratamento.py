@@ -1,15 +1,34 @@
 import pandas as pd
 import plotly.express as px
 import warnings
-from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 
 warnings.filterwarnings('ignore')
 
 def merged():
-    base_dir = Path(__file__).resolve().parent.parent
 
-    csv_path = base_dir / "data" / "precos_coletados.csv"
-    df = pd.read_csv(csv_path)
+    load_dotenv()
+    MONGO_USER = os.getenv("mongo_user")
+    MONGO_PASS = os.getenv("mongo_pass")
+
+    uri = f"mongodb+srv://{MONGO_USER}:{MONGO_PASS}@fraldas.1gjvb.mongodb.net/?retryWrites=true&w=majority&appName=fraldas"
+
+    # Create a new client and connect to the server
+    client = MongoClient(uri, server_api=ServerApi('1'))
+
+    database = client['fraldas']
+    collection = database['price_tracking']
+
+    results = collection.find()
+
+    df = pd.DataFrame(results)
+    df.drop('_id', axis=1, inplace=True)
+
+    client.close()
 
     df['timestamp'] = pd.to_datetime(df['timestamp'])
 

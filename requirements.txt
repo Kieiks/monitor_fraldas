@@ -5,4 +5,5 @@ dash_mantine_components==0.15.3
 pandas==2.2.3
 plotly==6.0.0
 python-dotenv==1.0.1
+pymongo==4.11.1
 gunicorn
