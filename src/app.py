@@ -221,23 +221,25 @@ def best_deal():
             )
 
 
-layout = dmc.Container(
-    [
-        headers(),
-        dmc.Text("VERSÃO EXCLUSIVA PARA FRALDAS", size="sm", c="gray"),
-        dmc.Divider(mb=10),
-        dmc.Space(h=10),
-        dmc.Grid([
-            dmc.GridCol(price_history(), span=8),
-            dmc.GridCol(best_deal(), span=4),
+def serve_layout():
+
+    return dmc.MantineProvider(dmc.Container(
+        [
+            headers(),
+            dmc.Text("VERSÃO EXCLUSIVA PARA FRALDAS", size="sm", c="gray"),
+            dmc.Divider(mb=10),
+            dmc.Space(h=10),
+            dmc.Grid([
+                dmc.GridCol(price_history(), span=8),
+                dmc.GridCol(best_deal(), span=4),
+            ],
+            grow=True
+            ),
         ],
-        grow=True
-        ),
-    ],
-    fluid=True,
-    py=20,
-    style={"maxWidth": 1200, "margin": "auto"},
-)
+        fluid=True,
+        py=20,
+        style={"maxWidth": 1200, "margin": "auto"},
+    ))
 
 
 @callback(
@@ -284,7 +286,7 @@ def enviar_alerta(nome, email, produto, n_clicks):
 
     return [''],[''],['']
 
-app.layout = dmc.MantineProvider(layout)
+app.layout = serve_layout
 
 if __name__ == "__main__":
     app.run(debug=True)
