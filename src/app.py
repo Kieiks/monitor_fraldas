@@ -5,22 +5,12 @@ from dash_iconify import DashIconify
 from utils import tratamento
 from utils import enviar_mail
 import plotly.graph_objects as go
+import pandas as pd
 _dash_renderer._set_react_version("18.2.0")
 dmc.add_figure_templates()
 
 app = Dash(external_stylesheets=dmc.styles.ALL)
 server = app.server
-
-#### IMPORTAR DADOS E CRIAR DATAFRAME GRAFICO ####
-df = tratamento.merged()
-df_max = df.groupby("timestamp")['UNIDADE'].min().reset_index()
-
-lowest_price_all = df_max.sort_values('timestamp').iloc[-1]['UNIDADE']
-
-
-df_produtos = df.groupby(['QUALIDADE',"timestamp"])['UNIDADE'].min().reset_index()
-grouped = df.groupby('MARCA')['QUALIDADE'].agg(lambda x: list(set(x))).reset_index()
-
 
 
 def headers():
@@ -32,7 +22,7 @@ def headers():
                 placeholder="Selecione uma opção",
                 id="alerta-produto",
                 value="",
-                data= ["Todos"] + [q.capitalize() for q in df['QUALIDADE'].unique()],
+                # data= 
                 w=200,
                 mb=10,
             )
@@ -68,14 +58,34 @@ def headers():
                 grow=True,
             )
 
+def chips_tamanho():
+
+    return dmc.Stack([
+        dmc.Text("Escolha um tamanho", fw=600, size="xl"),
+        dmc.Group(
+            dmc.ChipGroup(
+                [
+                    dmc.Chip("P", value="P",radius='md'),
+                    dmc.Chip("M", value="M",radius='md'),
+                    dmc.Chip("G", value="G",radius='md'),
+                    dmc.Chip("XG", value="XG",radius='md'),
+                    dmc.Chip("XXG", value="XXG",radius='md'),
+                    dmc.Chip("XXXG", value="XXXG",radius='md'),
+                ],
+                multiple=False,
+                value="XG",
+                id="chipgs_tamanho",
+            ),
+            justify="left",
+        )])
+
 def price_history():
 
-    multiselect_products = grouped.rename(columns={'MARCA': 'group', 'QUALIDADE': 'items'}).to_dict(orient='records')
     product_selector = dmc.Select(
                                     id='product_selector',
                                     label="",
                                     placeholder="PRODUTO",
-                                    data=multiselect_products,
+                                    # data={},
                                     size='xs',
                                     style={"width": 175, 'padding': '10px'},
                                     styles={
@@ -92,7 +102,7 @@ def price_history():
                                 dmc.Group([
                                     product_selector,
                                 ]),
-                                dcc.Graph(id='chart', figure=tratamento.line_chart(df_max), style={'height': '100%','padding': '10px'}, config={"displayModeBar": False, 'responsive': True}),
+                                dcc.Graph(id='chart', style={'height': '100%','padding': '10px'}, config={"displayModeBar": False, 'responsive': True}),
                             ],style={'border': f"1px solid lightgray", 'height': 400},
                         )
 
@@ -127,25 +137,6 @@ def price_history():
 
 def best_deal():
 
-    last_day = (df
-        [df['timestamp'] == df['timestamp'].max()]
-        .sort_values('UNIDADE')
-        .reset_index()
-    )
-
-    store = last_day.loc[0,]['LOJA']
-    price = last_day.loc[0,]['UNIDADE']
-    url = last_day.loc[0,]['URL']
-    product = f"{last_day.loc[0,]['MARCA'].capitalize()} {last_day.loc[0,]['QUALIDADE'].capitalize()} {last_day.loc[0,]['QTD']} unidades"
-
-    idxmin = (last_day
-        .groupby(['MARCA','QUALIDADE'])['UNIDADE']
-        .idxmin()
-    )
-
-    df_grid = last_day.loc[idxmin]
-    df_grid['GRID_LINK'] = '['+df_grid['QUALIDADE']+']('+df_grid['URL']+')'
-    df_grid.sort_values('UNIDADE', inplace=True)
     # Define AG Grid Columns
     columns = [
         {"headerName": "MARCA", "field": "MARCA"},
@@ -155,7 +146,7 @@ def best_deal():
 
     grid = dag.AgGrid(
             id="product-grid",
-            rowData=df_grid.to_dict("records"),
+            # rowData={},
             columnDefs=columns,
             columnSize='autoSize',
             defaultColDef={"sortable": True, "filter": False, "resizable": False, "cellStyle": {"fontSize": "12px"}, "cellRenderer": "markdown"},
@@ -185,7 +176,7 @@ def best_deal():
                                     size="sm",
                                     variant="light",
                                 ),
-                                dmc.Anchor(href=url, target='_blank', children=f"{store}", size="xl", fw=500),
+                                dmc.Anchor(id='anchor', href='', target='_blank', size="xl", fw=500),
                             ],
                             gap="xs",
                         ),
@@ -193,7 +184,7 @@ def best_deal():
                     span=6,
                     ),
                     dmc.GridCol(
-                        dmc.Text(f"R$ {price:.2f}", size="lg", fw=700, c="black"),
+                        dmc.Text(id='lowest_price', size="lg", fw=700, c="black"),
                         span=6,
                         style={"textAlign": "right"}
                     ),
@@ -201,7 +192,7 @@ def best_deal():
                 gutter=0,
                 mt=6,
             ),
-            dmc.Text(product, size="md", c="gray"),
+            dmc.Text(id='lowest_price_name', size="md", c="gray"),
         ],
         withBorder=True,
         shadow="sm",
@@ -212,7 +203,7 @@ def best_deal():
     return html.Div(
                 children=[
                     dmc.Text("Melhor Preço", fw=600, size="xl"),
-                    dmc.Text(f"Última atualização | {df['timestamp'].max():%d/%m/%Y - %H:%M}", size="md", c="gray"),
+                    dmc.Text(id='ultima_atualizacao', size="md", c="gray"),
                     dmc.Space(h=10),
                     lowest_price,
                     dmc.Space(h=5),
@@ -225,9 +216,12 @@ def serve_layout():
 
     return dmc.MantineProvider(dmc.Container(
         [
+            dcc.Store(id='df_store'),
             headers(),
             dmc.Text("VERSÃO EXCLUSIVA PARA FRALDAS", size="sm", c="gray"),
             dmc.Divider(mb=10),
+            chips_tamanho(),
+            dmc.Space(h=10),
             dmc.Space(h=10),
             dmc.Grid([
                 dmc.GridCol(price_history(), span=8),
@@ -241,17 +235,69 @@ def serve_layout():
         style={"maxWidth": 1200, "margin": "auto"},
     ))
 
+@callback(
+    [Output('df_store', 'data'),
+    Output('product-grid', 'rowData'),
+    Output('anchor', 'href'),
+    Output('anchor', 'children'),
+    Output('lowest_price', 'children'),
+    Output('lowest_price_name', 'children'),
+    Output('ultima_atualizacao', 'children'),
+    Output('alerta-produto', 'data'),
+    Output('product_selector', 'data')],
+    Input('chipgs_tamanho', 'value'),
+)
+def filter_data(value):
+    df = tratamento.merged()
+    df_filtered = df[df['TAMANHO'] == value]
+
+    last_day = (df_filtered
+        [df_filtered['timestamp'] == df_filtered['timestamp'].max()]
+        .sort_values('UNIDADE')
+        .reset_index()
+    )
+
+    store = last_day.loc[0,]['LOJA']
+    price = last_day.loc[0,]['UNIDADE']
+    url = last_day.loc[0,]['URL']
+    product = f"{last_day.loc[0,]['MARCA'].capitalize()} {last_day.loc[0,]['QUALIDADE'].capitalize()} {last_day.loc[0,]['QTD']} unidades"
+
+    idxmin = (last_day
+        .groupby(['MARCA','QUALIDADE'])['UNIDADE']
+        .idxmin()
+    )
+
+    df_grid = last_day.loc[idxmin]
+    df_grid['GRID_LINK'] = '['+df_grid['QUALIDADE']+']('+df_grid['URL']+')'
+    df_grid.sort_values('UNIDADE', inplace=True)
+
+    atualizacao = f"Última atualização | {df['timestamp'].max():%d/%m/%Y - %H:%M}"
+    multiselector = df_filtered.groupby('MARCA')['QUALIDADE'].agg(lambda x: list(set(x))).reset_index().rename(columns={'MARCA': 'group', 'QUALIDADE': 'items'}).to_dict(orient='records')
+    alerta_produto = ["Todos"] + [q.capitalize() for q in df['QUALIDADE'].unique()],
+    return df_filtered.to_dict('records'), df_grid.to_dict('records'), url, store, f"R$ {price:.2f}", product, atualizacao, alerta_produto, multiselector
+
 
 @callback(
     Output("chart", "figure"),
     Input("product_selector", "value"),
-    # prevent_initial_call=True,
+    Input("df_store", "data"),
+    prevent_initial_call=True,
 )
-def update_charts(product):
+def update_charts(product, data):
+    df_tamanho = pd.DataFrame(data)
+    df_tamanho['timestamp'] = pd.to_datetime(df_tamanho['timestamp'])
+
+    lowest_price_all = (df_tamanho
+        [df_tamanho['timestamp'] == df_tamanho['timestamp'].max()]
+        .sort_values('UNIDADE')
+        .reset_index()
+        .iloc[0]['UNIDADE']
+    )
+
     if not product:
-        df_max = df.groupby("timestamp")['UNIDADE'].min().reset_index()
+        df_max = df_tamanho.groupby("timestamp")['UNIDADE'].min().reset_index()
     else:
-        df_max = df[df['QUALIDADE'] == product].groupby("timestamp")['UNIDADE'].min().reset_index()
+        df_max = df_tamanho[df_tamanho['QUALIDADE'] == product].groupby("timestamp")['UNIDADE'].min().reset_index()
 
     fig = tratamento.line_chart(df_max)
     fig.add_hline(y=lowest_price_all, line_dash="dot", line_color="red", annotation_text=f"Melhor Preço: R${lowest_price_all:.2f}", annotation_position="bottom right")
