@@ -110,29 +110,7 @@ def price_history():
     return html.Div([
             historico_texto,
             dmc.Space(h=10),
-            dmc.Tabs(
-                [
-                    dmc.TabsList(
-                        [
-                            dmc.TabsTab("XG", value="XG", pb='xs', size='xs'),
-                            dmc.TabsTab("XXG", value="XXG", pb='xs', size='xs'),
-                        ]
-                    ),
-                    dmc.Space(h=10),
-                    dmc.TabsPanel(
-                        painel,
-                        value="XG",
-                    ),
-                    dmc.TabsPanel(
-                        dmc.Text("List View Placeholder"),
-                        value="XXG",
-                    ),
-                ],
-                orientation='vertical',
-                placement='left',
-                # variant='pills',
-                value="XG",
-            )
+            painel,
         ])
 
 def best_deal():
