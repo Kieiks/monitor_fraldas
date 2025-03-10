@@ -9,7 +9,7 @@ import pandas as pd
 _dash_renderer._set_react_version("18.2.0")
 dmc.add_figure_templates()
 
-app = Dash(external_stylesheets=dmc.styles.ALL)
+app = Dash(external_stylesheets=dmc.styles.ALL, suppress_callback_exceptions=True)
 server = app.server
 
 
@@ -74,7 +74,7 @@ def chips_tamanho():
                 ],
                 multiple=False,
                 value="XG",
-                id="chipgs_tamanho",
+                id="chips_tamanho",
             ),
             justify="left",
         )])
@@ -194,7 +194,8 @@ def serve_layout():
 
     return dmc.MantineProvider(dmc.Container(
         [
-            dcc.Store(id='df_store'),
+            dcc.Store(id='df_store', data=tratamento.merged().to_dict('records')),
+            dcc.Store(id='df_store_filtered', data={}),
             headers(),
             dmc.Text("VERSÃO EXCLUSIVA PARA FRALDAS", size="sm", c="gray"),
             dmc.Divider(mb=10),
@@ -214,7 +215,7 @@ def serve_layout():
     ))
 
 @callback(
-    [Output('df_store', 'data'),
+    [Output('df_store_filtered', 'data'),
     Output('product-grid', 'rowData'),
     Output('anchor', 'href'),
     Output('anchor', 'children'),
@@ -223,16 +224,18 @@ def serve_layout():
     Output('ultima_atualizacao', 'children'),
     Output('alerta-produto', 'data'),
     Output('product_selector', 'data')],
-    Input('chipgs_tamanho', 'value'),
+    Input('chips_tamanho', 'value'),
+    State('df_store', 'data'),
 )
-def filter_data(value):
-    df = tratamento.merged()
+def filter_data(value, data):
+    df = pd.DataFrame(data)
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
     df_filtered = df[df['TAMANHO'] == value]
 
     last_day = (df_filtered
         [df_filtered['timestamp'] == df_filtered['timestamp'].max()]
         .sort_values('UNIDADE')
-        .reset_index()
+        .reset_index(drop=True)
     )
 
     store = last_day.loc[0,]['LOJA']
@@ -258,7 +261,7 @@ def filter_data(value):
 @callback(
     Output("chart", "figure"),
     Input("product_selector", "value"),
-    Input("df_store", "data"),
+    Input("df_store_filtered", "data"),
     prevent_initial_call=True,
 )
 def update_charts(product, data):

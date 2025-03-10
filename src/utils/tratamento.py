@@ -30,6 +30,7 @@ def merged():
 
     client.close()
 
+    df['timestamp'] = pd.to_datetime(df['timestamp']).dt.date
     df['timestamp'] = pd.to_datetime(df['timestamp'])
 
     return df
@@ -58,7 +59,8 @@ def adjust_chart(fig):
 
     fig.update_traces(
         line=dict(width=2, shape="hvh",smoothing=0.1),  # Match DMC line color & thickness
-        mode="lines",  # Add dots at data points
+        mode="markers+lines",  # Add dots at data points
+        marker=dict(size=5, color="white",line=dict(width=1,color='blue')),  # Match DMC dot color & size
     )
 
     fig.update_xaxes(
@@ -88,3 +90,5 @@ def adjust_chart(fig):
     )
 
     return fig
+
+merged_df = merged()
