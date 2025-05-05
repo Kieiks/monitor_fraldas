@@ -189,6 +189,27 @@ def best_deal():
                 ]
             )
 
+def top_products_table():
+    columns = [
+        {"headerName": "DESCRICAO", "field": "GRID_LINK", "linkTarget": "_blank"},
+        {"headerName": "MARCA", "field": "MARCA"},
+        {"headerName": "QUALIDADE", "field": "QUALIDADE"},
+        {"headerName": "TAMANHO", "field": "TAMANHO"},
+        {"headerName": "LOJA", "field": "LOJA"},
+        {"headerName": "UNIDADE", "field": "UNIDADE"},
+    ]
+
+    grid = dag.AgGrid(
+            id="top-products-grid",
+            columnDefs=columns,
+            defaultColDef={"sortable": True, "filter": False, "resizable": False, "cellStyle": {"fontSize": "12px"}, "cellRenderer": "markdown"},
+            dashGridOptions={"domLayout": "autoHeight"},
+            className="ag-theme-alpine",
+            style={"fontSize": "12px"},
+        )
+
+    return html.Div(grid)
+
 
 def serve_layout():
 
@@ -208,6 +229,7 @@ def serve_layout():
             ],
             grow=True
             ),
+            top_products_table(),
         ],
         fluid=True,
         py=20,
@@ -223,7 +245,8 @@ def serve_layout():
     Output('lowest_price_name', 'children'),
     Output('ultima_atualizacao', 'children'),
     Output('alerta-produto', 'data'),
-    Output('product_selector', 'data')],
+    Output('product_selector', 'data'),
+    Output('top-products-grid', 'rowData')],
     Input('chips_tamanho', 'value'),
     State('df_store', 'data'),
 )
@@ -255,7 +278,10 @@ def filter_data(value, data):
     atualizacao = f"Última atualização | {df['timestamp'].max():%d/%m/%Y - %H:%M}"
     multiselector = df_filtered.groupby('MARCA')['QUALIDADE'].agg(lambda x: list(set(x))).reset_index().rename(columns={'MARCA': 'group', 'QUALIDADE': 'items'}).to_dict(orient='records')
     alerta_produto = ["Todos"] + [q.capitalize() for q in df['QUALIDADE'].unique()],
-    return df_filtered.to_dict('records'), df_grid.to_dict('records'), url, store, f"R$ {price:.2f}", product, atualizacao, alerta_produto, multiselector
+
+    last_day['GRID_LINK'] = '['+last_day['DESCRICAO']+']('+last_day['URL']+')'
+
+    return df_filtered.to_dict('records'), df_grid.to_dict('records'), url, store, f"R$ {price:.2f}", product, atualizacao, alerta_produto, multiselector, last_day.head(10).to_dict('records')
 
 
 @callback(
