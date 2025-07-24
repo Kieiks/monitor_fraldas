@@ -1,5 +1,6 @@
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import warnings
 import os
 from dotenv import load_dotenv
@@ -9,7 +10,7 @@ from pymongo.server_api import ServerApi
 
 warnings.filterwarnings('ignore')
 
-def merged():
+def load_data():
 
     load_dotenv()
     MONGO_USER = os.getenv("mongo_user")
@@ -20,75 +21,54 @@ def merged():
     # Create a new client and connect to the server
     client = MongoClient(uri, server_api=ServerApi('1'))
 
-    database = client['fraldas']
-    collection = database['price_tracking']
+    database = client['essentiel']
+    collection = database['pourbebe']
 
     results = collection.find()
 
     df = pd.DataFrame(results)
-    df.drop('_id', axis=1, inplace=True)
-
     client.close()
 
-    df['timestamp'] = pd.to_datetime(df['timestamp']).dt.date
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df.drop('_id', axis=1, inplace=True)
+    df['timestamp'] = pd.to_datetime(df['timestamp'], format='%Y-%m-%d %H:%M:%S')
+    df = df[df['timestamp'] > pd.Timestamp.now() - pd.Timedelta(days=90)]
+    df = df.query('ESTOQUE_AJUSTADO == 1')
+
+    df = df.round(2)
 
     return df
 
-def line_chart(df):
-    fig = px.line(df, x="timestamp", y="UNIDADE", template="mantine_light")
+def trend_chart(df):
 
-    return adjust_chart(fig)
+    fig = go.Figure()
 
-def line_chart_produtos(df):
-    fig = px.line(df, x="timestamp", y="UNIDADE", color='QUALIDADE', template="mantine_light")
-
-    fig.update_layout(legend=dict(
-        title=None,
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="right",
-        x=1,
-        font=dict(size=8)
+    fig.add_trace(go.Scatter(
+        x=df.index, 
+        y=df['min'], 
+        mode='lines+markers',
+        line=dict(width=3, color='rgba(0, 90, 150, 0.9)'),
+        marker=dict(size=6, color='white', line=dict(width=2, color='rgba(0, 90, 150, 0.9)')),
+        line_shape='hvh',
+        name='Mínimo',
+        hovertemplate='Menor Preço: R$ %{y}<extra></extra>'
     ))
 
-    return adjust_chart(fig)
-
-def adjust_chart(fig):
-
-    fig.update_traces(
-        line=dict(width=2, shape="hvh",smoothing=0.1),  # Match DMC line color & thickness
-        mode="markers+lines",  # Add dots at data points
-        marker=dict(size=5, color="white",line=dict(width=1,color='blue')),  # Match DMC dot color & size
-    )
-
-    fig.update_xaxes(
-        title=None,
-        showgrid=False,  # Keep gridlines visible
-        tickangle=0,  # Ensure horizontal labels
-        # tickformat="%Y-%m-%d",  # Dense tick format like DMC
-        showline=False,  # Add border line
-    )
-
     fig.update_yaxes(
-        title=None,
-        showgrid=True,  # Ensure grid visibility
-        gridwidth=1,
-        gridcolor='lightgray',
-        griddash='dash',
+        gridcolor='rgba(0,0,0,0.08)',
         zeroline=False,
-        showline=False,  # Add border line
-        linecolor="green",
+        showline=False,
+        title=''
     )
 
     fig.update_layout(
-        font=dict(size=12,color='gray'),
-        plot_bgcolor="white",  # Match DMC background
-        margin=dict(l=0, r=0, t=0, b=0, pad=20),  # Remove extra margins
-        hovermode="x unified"  # More structured hover interaction
+        margin=dict(l=40, r=40, t=40, b=40),
+        plot_bgcolor='rgba(0,0,0,0.0)',
+        paper_bgcolor='rgba(0,0,0,0.0)',
+        font=dict(family='Arial', size=14, color='black'),
+        hovermode='x unified',
     )
-
+    
     return fig
 
-merged_df = merged()
+# merged_df = load_data()
+# print(merged_df.info())
