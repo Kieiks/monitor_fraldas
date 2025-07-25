@@ -65,23 +65,41 @@ def chips_tamanho_component(category):
         ))
 
 def price_history():
+
+    product_selector = dmc.Select(
+                                    id='product_selector',
+                                    label="",
+                                    placeholder="PRODUTO",
+                                    # data={},
+                                    size='xs',
+                                    style={"width": 175, 'padding': '10px'},
+                                    styles={
+                                        "input": {
+                                            "border": "2px solid #828282",
+                                        },
+                                    },
+                                    radius=10,
+                                )
+
+
     return html.Div([
         dmc.Text("HISTÓRICO DE PREÇOS", fw=600, size="lg"),
         dmc.Space(h=10),
         dmc.Stack([
+            product_selector,
             dcc.Graph(
                 id='chart',
-                style={'height': '100%', 'padding': '10px', 'backgroundColor': 'rgba(0,0,0,0.02)'},
+                style={'height': '100%', 'padding': '10px'},
                 config={"displayModeBar": False, 'responsive': True}
             ),
-        ], style={'border': "1px solid lightgray", 'height': 400})
+        ], style={'border': "1px solid lightgray", 'height': 400, 'backgroundColor': 'rgba(0,0,0,0.02)'})
     ])
 
 def best_deal():
     columns = [
-        {"headerName": "MARCA", "field": "MARCA"},
-        {"headerName": "QUALIDADE", "field": "GRID_LINK", "linkTarget": "_blank"},
-        {"headerName": "UNIDADE", "field": "UNIDADE", "type": "numericColumn"},
+        {"headerName": "MARCA", "field": "MARCA", "flex": 1},
+        {"headerName": "QUALIDADE", "field": "GRID_LINK", "linkTarget": "_blank", "flex": 1},
+        {"headerName": "UNIDADE", "field": "UNIDADE", "type": "numericColumn", "flex": 1},
     ]
 
     grid = dag.AgGrid(
@@ -183,42 +201,65 @@ def top_products_table():
 # ------------------ Layout assembly ------------------
 
 def serve_layout():
-    return dmc.MantineProvider(dmc.Container([
-        dcc.Store(id='df_store', data=tratamento.load_data().to_dict('records')),
-        dcc.Store(id='df_store_filtered', data={}),
+    return dmc.MantineProvider(
+        dmc.Container(
+            [
+                dcc.Store(id='df_store', data=tratamento.load_data().to_dict('records')),
+                dcc.Store(id='df_store_filtered', data={}),
 
-        headers(),
-        dmc.Text("VERSÃO FRALDAS / APTANUTRI", size="md", c="gray", style={"fontStyle": "italic"}),
-        dmc.Divider(mb=10),
+                headers(),
+                dmc.Text(
+                    "VERSÃO FRALDAS / APTANUTRI",
+                    size="md",
+                    c="gray",
+                    style={"fontStyle": "italic"}
+                ),
+                dmc.Divider(mb=10),
 
-        dmc.Space(h=20),
-        dmc.Grid([
-            dmc.GridCol(dmc.Paper([
-                chips_categoria(),
                 dmc.Space(h=20),
-                html.Div(id="chips_tamanho_container"),   # dynamic placeholder
-                dmc.Space(h=20),
-                price_history()
+                dmc.Grid(
+                    [
+                        dmc.GridCol(
+                            dmc.Paper(
+                                [
+                                    chips_categoria(),
+                                    dmc.Space(h=20),
+                                    html.Div(id="chips_tamanho_container"),  # dynamic placeholder
+                                    dmc.Space(h=20),
+                                    price_history()
+                                ],
+                                withBorder=True,
+                                shadow="xs",
+                                radius="md",
+                                p="sm",
+                                style={"padding": 16},
+                                mt=20
+                            ),
+                            span=8
+                        ),
+                        dmc.GridCol(
+                            dmc.Paper(
+                                best_deal(),
+                                withBorder=True,
+                                shadow="xs",
+                                radius="md",
+                                p="sm",
+                                style={"padding": 16},
+                                mt=20
+                            ),
+                            span=4
+                        ),
+                    ],
+                    grow=True
+                ),
+                top_products_table(),
             ],
-        withBorder=True,
-        shadow="xs",
-        radius="md",
-        p="sm",
-        style={"padding": 16},
-        mt=20), span=8),
-            dmc.GridCol(dmc.Paper(best_deal(),
-        withBorder=True,
-        shadow="xs",
-        radius="md",
-        p="sm",
-        style={"padding": 16},
-        mt=20), span=4),
-        ], grow=True),
-        top_products_table(),
-    ],
-    fluid=True,
-    py=20,
-    style={"maxWidth": 1200, "margin": "auto"}))
+            fluid=True,
+            py=20,
+            style={"maxWidth": 1200, "margin": "auto"}
+        )
+    )
+
 
 # ------------------ Callbacks ------------------
 
@@ -241,7 +282,7 @@ def update_chips_tamanho(selected_category):
         Output('lowest_price_name', 'children'),
         Output('ultima_atualizacao', 'children'),
         Output('top-products-grid', 'rowData'),
-        Output("chart", "figure"),
+        Output('product_selector', 'data'),
     ],
     Input('chips_tamanho', 'value'),
     State('df_store', 'data'),
@@ -273,12 +314,7 @@ def filter_data(selected_size, data):
 
     last_update = f"Última atualização | {df['timestamp'].max():%d/%m/%Y - %H:%M}"
 
-    df_chart = (df_filtered_by_size
-        .resample('D', on='timestamp')['UNIDADE']
-        .aggregate(['min', 'mean', 'max'])
-        .ffill())
-    
-    fig = tratamento.trend_chart(df_chart)
+    multiselector = df_filtered_by_size.groupby('MARCA')['QUALIDADE'].agg(lambda x: list(set(x))).reset_index().rename(columns={'MARCA': 'group', 'QUALIDADE': 'items'}).to_dict(orient='records')
 
     return (
         df_filtered_by_size.to_dict('records'),
@@ -289,8 +325,34 @@ def filter_data(selected_size, data):
         product,
         last_update,
         latest_day_products.to_dict('records'),
-        fig
+        multiselector
     )
+
+@callback(
+    Output("chart", "figure"),
+    Input("product_selector", "value"),
+    Input("df_store_filtered", "data"),
+    prevent_initial_call=True,
+)
+def update_charts(product, data):
+    df = pd.DataFrame(data)
+    df['timestamp'] = pd.to_datetime(df['timestamp'], format='%Y-%m-%dT%H:%M:%S')
+
+    if not product:
+        df_chart = (df
+            .resample('D', on='timestamp')['UNIDADE']
+            .aggregate(['min', 'mean', 'max'])
+            .ffill())
+    else:
+        df_chart = (df
+            .query('QUALIDADE == @product')
+            .resample('D', on='timestamp')['UNIDADE']
+            .aggregate(['min', 'mean', 'max'])
+            .ffill())
+    
+    fig = tratamento.trend_chart(df_chart)
+    return fig
+
 
 # ------------------ Run app ------------------
 
