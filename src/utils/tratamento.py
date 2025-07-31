@@ -27,7 +27,6 @@ def load_data():
     results = collection.find()
 
     df = pd.DataFrame(results)
-    client.close()
 
     df.drop('_id', axis=1, inplace=True)
     df['timestamp'] = pd.to_datetime(df['timestamp'], format='%Y-%m-%d %H:%M:%S')
@@ -35,6 +34,32 @@ def load_data():
     df = df.query('ESTOQUE_AJUSTADO == 1')
 
     df = df.round(2)
+
+    collection_freight = database['freight']
+    
+    pipeline = [
+        {"$sort": {"timestamp": -1}},  # Ordena por timestamp descrescente
+        {"$group": {
+            "_id": "$ID",
+            "ID": {"$first": "$ID"},
+            "MENOR_FRETE": {"$first": "$MENOR_FRETE"},
+            "timestamp": {"$first": "$timestamp"}
+        }},
+        {"$project": {
+            "_id": 0,  # remove o campo interno _ida
+            "ID": 1,
+            "MENOR_FRETE": 1,
+            "timestamp": 1
+        }}
+    ]
+
+    result_freight = list(collection_freight.aggregate(pipeline))
+    df_freight = pd.DataFrame(result_freight)
+    df_freight.rename(columns={'timestamp': 'freight_timestamp'}, inplace=True)
+
+    df = df.merge(df_freight,left_on='ID',right_on='ID',how='left')
+
+    client.close()
 
     return df
 
@@ -71,4 +96,4 @@ def trend_chart(df):
     return fig
 
 # merged_df = load_data()
-# print(merged_df.info())
+# print(merged_df.tail())

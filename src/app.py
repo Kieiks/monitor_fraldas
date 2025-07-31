@@ -105,7 +105,7 @@ def best_deal():
     grid = dag.AgGrid(
         id="product-grid",
         columnDefs=columns,
-        columnSize='autoSize',
+        # columnSize='autoSize',
         defaultColDef={"sortable": True, "filter": False, "resizable": False,
                        "cellStyle": {"fontSize": "12px"}, "cellRenderer": "markdown"},
         dashGridOptions={"domLayout": "autoHeight"},
@@ -172,6 +172,7 @@ def top_products_table():
         {"headerName": "UNIDADE", "field": "UNIDADE", "flex": 1},
         {"headerName": "QTD", "field": "QTD", "flex": 1},
         {"headerName": "PRECO", "field": "PRECO", "flex": 1},
+        {"headerName": "FRETE", "field": "MENOR_FRETE", "flex": 1}
     ]
 
     grid = dag.AgGrid(
