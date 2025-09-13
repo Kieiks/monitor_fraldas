@@ -5,6 +5,8 @@ from dash_iconify import DashIconify
 
 app = Dash(__name__, use_pages=True, external_stylesheets=dmc.styles.ALL, suppress_callback_exceptions=True)
 
+server = app.server
+
 def get_navbar(pathname):
     return [
         dmc.Text("Navegação", size="xs", c="gray.6", mb=8, tt="uppercase", fw=700, style={"letterSpacing": 1}),
