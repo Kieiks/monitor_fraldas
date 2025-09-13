@@ -1,0 +1,9 @@
+.min-green {
+    background-color: #d4edda !important; /* light green background */
+    color: #155724 !important;           /* dark green text */
+    font-weight: bold;
+}
+
+.ag-header-cell-label {
+    justify-content: center !important;
+}
