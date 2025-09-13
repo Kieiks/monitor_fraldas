@@ -122,4 +122,4 @@ def update_navbar(pathname):
     return get_navbar(pathname or "/")
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run(debug=True)
