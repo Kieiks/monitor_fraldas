@@ -1,5 +1,5 @@
 import dash_mantine_components as dmc
-from dash import Dash, html, dcc, Output, Input
+from dash import Dash, html, dcc, Output, Input, State
 import dash
 from dash_iconify import DashIconify
 
@@ -10,28 +10,28 @@ server = app.server
 def get_navbar(pathname):
     return [
         dmc.Text("Navegação", size="xs", c="gray.6", mb=8, tt="uppercase", fw=700, style={"letterSpacing": 1}),
-        # dmc.NavLink(
-        #     label="Página Inicial",
-        #     fw=600,
-        #     href="/",
-        #     leftSection=DashIconify(icon="bi:house-heart-fill", width=22, color="#228be6"),
-        #     active=(pathname == "/" or pathname == ""),
-        #     style={"marginBottom": 6}
-        # ),
         dmc.NavLink(
-            label="Pesquisa Rápida",
+            label="Início",
             fw=600,
+            leftSection=DashIconify(icon="ic:round-home", width=26, color="#228be6"),
             href="/",
-            leftSection=DashIconify(icon="icomoon-free:price-tags", width=22, color="#228be6"),
             active=(pathname == "/"),
             style={"marginBottom": 6}
         ),
         dmc.NavLink(
-            label="Dashboard",
+            label="Fraldas",
             fw=600,
-            href="/dashboard",
-            leftSection=DashIconify(icon="mdi:view-dashboard", width=22, color="#228be6"),
-            active=(pathname == "/dashboard"),
+            href="/fraldas",
+            leftSection=DashIconify(icon="mdi:diaper-outline", width=26, color="#228be6"),
+            active=(pathname == "/fraldas"),
+            style={"marginBottom": 6}
+        ),
+        dmc.NavLink(
+            label="Aptanutri",
+            fw=600,
+            href="/aptanutri",
+            leftSection=DashIconify(icon="game-icons:baby-bottle", width=26, color="#228be6"),
+            active=(pathname == "/aptanutri"),
             style={"marginBottom": 6}
         ),
         # dmc.NavLink(
@@ -63,6 +63,15 @@ app.layout = dmc.MantineProvider(
                     [
                         dmc.Group(
                             [
+                                dmc.Burger(
+                                    id="burger",
+                                    opened=False,
+                                    size="sm",
+                                    color="#228be6",
+                                    # only show Burger on mobile
+                                    visibleFrom=None,  # or possibly `hiddenFrom="sm"` to hide on larger screens
+                                    hiddenFrom="md",   # this hides the burger when width ≥ md, shows it below that
+                                ),
                                 # dmc.Avatar(src="assets/baby-logo.png", color="blue", radius="xl", size='lg'),  # Use your logo here
                                 dmc.ThemeIcon(
                                     DashIconify(icon="streamline-freehand:family-baby-change-diaper", width=32, color="#228be6"),
@@ -78,15 +87,16 @@ app.layout = dmc.MantineProvider(
                                 ),
                             ],
                             align="center",
-                            gap="md"
+                            gap="md",
                         ),
                         dmc.Space(w="auto"),
-                        dmc.ThemeIcon(
-                            DashIconify(icon="mdi:account-circle", width=32, color="#228be6"),
-                            variant="light",
-                            radius="xl",
-                            size="lg"
-                        ),
+                        dmc.Box(),
+                        # dmc.ThemeIcon(
+                        #     DashIconify(icon="mdi:account-circle", width=32, color="#228be6"),
+                        #     variant="light",
+                        #     radius="xl",
+                        #     size="lg"
+                        # ),
                     ],
                     justify="space-between",
                     align="center",
@@ -110,18 +120,41 @@ app.layout = dmc.MantineProvider(
             ),
         ],
         header={"height": 70},
-        navbar={"width": 260, "breakpoint": "sm", "collapsed": {"desktop": False}},
+        navbar={"width": 260, "breakpoint": "sm", "collapsed": {"mobile": True, "desktop": False}},
         padding="md",
         id="appshell",
     )
 )
 
 @app.callback(
-    Output("navbar", "children"),
+    [Output("navbar", "children"),
+    Output("navbar", "collapsed"),  # 👈 control collapse
+    Output("burger", "opened"), ],    # 👈 sync burger
     Input("url", "pathname"),
+    State("burger", "opened"),
+    prevent_initial_call=True,
 )
-def update_navbar(pathname):
-    return get_navbar(pathname or "/")
+def update_navbar(pathname, opened):
+    # your navbar content
+    navbar_content = get_navbar(pathname or "/")
+
+    # default collapse config
+    collapsed = {"mobile": not opened, "desktop": False}
+
+    # when user clicks a navlink (URL changes),
+    # auto-close only on mobile
+    collapsed = {"mobile": True, "desktop": False}
+
+    return navbar_content, collapsed, False
+
+@app.callback(
+    Output("appshell", "navbar"),
+    Input("burger", "opened"),
+    prevent_initial_call=True
+)
+def toggle_navbar(opened):
+    return {"width": 260, "breakpoint": "sm", "collapsed": {"mobile": not opened, "desktop": False}}
+
 
 if __name__ == "__main__":
     app.run(debug=True)

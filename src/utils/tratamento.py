@@ -31,14 +31,15 @@ def latest_records(categoria=None,marca=None,qualidade=None,tamanho=None):
 
     pipeline = [
         {'$match': match_stage},
-        {'$project': {'_id': 0}}
+        # {'$project': {'_id': 0}},
+        {"$sort": {"UNIDADE": 1}}
     ]
 
     results = list(COLLECTION.aggregate(pipeline))
 
     return results
 
-def listagem_inicial(only_last_timestamp=True):
+def listagem_inicial(only_last_timestamp=True, categoria=None):
     # Step 1: Find the latest timestamp in the collection
     latest_ts = COLLECTION.find_one(sort=[("timestamp", -1)])["timestamp"]
 
@@ -48,6 +49,12 @@ def listagem_inicial(only_last_timestamp=True):
     if only_last_timestamp:
         # Suggestion: add an index on 'timestamp' for fast lookup
         pipeline.append({"$match": {"timestamp": latest_ts}})
+
+    if categoria is not None:
+        if isinstance(categoria, list):
+            pipeline.append({"$match": {"CATEGORIA": {"$in": categoria}}})
+        else:
+            pipeline.append({"$match": {"CATEGORIA": categoria}})
 
     # Suggestion: add a compound index on (CATEGORIA, MARCA, QUALIDADE, TAMANHO) for fast grouping
     pipeline.extend([
@@ -72,7 +79,7 @@ def listagem_inicial(only_last_timestamp=True):
 
     return uniques, latest_ts
 
-def lista_menores_valores_dia(categoria, marca, submarca, tamanho, page=1, page_size=9):
+def lista_menores_valores_dia(categoria, marca, submarca, tamanho):
 
     # Step 1: Get latest timestamp
     latest_ts = COLLECTION.find_one(sort=[("timestamp", -1)])["timestamp"]
@@ -116,9 +123,6 @@ def lista_menores_valores_dia(categoria, marca, submarca, tamanho, page=1, page_
         {"$replaceRoot": {"newRoot": "$doc"}},
 
         {"$sort": {"UNIDADE": 1}},
-        # Pagination
-        {"$skip": (page-1)*page_size},
-        {"$limit": page_size},
     ]
 
     results = list(COLLECTION.aggregate(pipeline))

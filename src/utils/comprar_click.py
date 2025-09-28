@@ -3,10 +3,10 @@ from .mongo import DATABASE
 
 COLLECTION = DATABASE['comprar_clicks']
 
-def log_comprar_click(object_id, search_id, page):
+def log_comprar_click(object_id, page):
     doc = {
         "pourbebe_object": object_id,
-        "search_id": search_id,
+        # "search_id": search_id,
         "timestamp": datetime.now(),
         "page": page,
     }

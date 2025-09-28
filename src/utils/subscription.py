@@ -25,7 +25,7 @@ def add_subscription(email, categoria, marca, submarca, tamanho):
         "marca": marca,
         "submarca": submarca,
         "tamanho": tamanho,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.now()
     }
     COLLECTION.insert_one(doc)
     return True

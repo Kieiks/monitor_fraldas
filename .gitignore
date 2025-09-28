@@ -3,3 +3,4 @@ venv
 backup
 src/unsubscribe_manual.py
 src/send_recommendations.py
+.github

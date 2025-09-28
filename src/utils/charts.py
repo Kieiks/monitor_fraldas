@@ -80,6 +80,8 @@ def recomendation_chart(df):
         showlegend=False
     ))
 
+    fig.update_traces(hoverinfo="skip")
+
     fig.update_layout(
         height=40,
         margin=dict(l=0, r=0, t=0, b=0),
