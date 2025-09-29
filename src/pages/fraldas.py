@@ -20,7 +20,9 @@ categoria = 'fraldas'
 
 dash.register_page(__name__, path=f"/{categoria}", name=f"{categoria.capitalize()}")
 
-listagem_inicial, ultima_atualizacao = listagem_inicial(categoria=categoria)
+def get_latest_data(categoria):
+    data, timestamp = listagem_inicial(categoria=categoria)
+    return data, timestamp
 
 selectors = dmc.Grid(
     gutter="md",
@@ -318,7 +320,7 @@ def generate_card(row_data, is_best=False, search_id=None):
 
     return card
 
-def lista_cards(data, search_id=None):
+def lista_cards(data, ultima_atualizacao):
     if not data:
         return dmc.Alert("Nenhuma oferta encontrada para os filtros selecionados.", color="yellow", variant="light", mt="md")
 
@@ -436,7 +438,7 @@ layout = dmc.Paper(
     ]
 )
 def update_marcas(submarca, tamanho):
-    filtered = listagem_inicial
+    filtered, _ = get_latest_data(categoria)
     if submarca:
         if isinstance(submarca, list):
             filtered = [el for el in filtered if el['QUALIDADE'] in submarca]
@@ -458,7 +460,7 @@ def update_marcas(submarca, tamanho):
     ]
 )
 def update_submarcas(marca, tamanho):
-    filtered = listagem_inicial
+    filtered, _ = get_latest_data(categoria)
     if marca:
         if isinstance(marca, list):
             filtered = [el for el in filtered if el['MARCA'] in marca]
@@ -480,7 +482,7 @@ def update_submarcas(marca, tamanho):
     ]
 )
 def update_tamanhos(marca, submarca):
-    filtered = listagem_inicial
+    filtered, _ = get_latest_data(categoria)
     if marca:
         if isinstance(marca, list):
             filtered = [el for el in filtered if el['MARCA'] in marca]
@@ -503,6 +505,7 @@ def update_tamanhos(marca, submarca):
         Input(f'selector_tamanho_{categoria}','value'),
     )
 def listar_cards(marca, submarca, tamanho):
+    _, ultima_atualizacao = get_latest_data(categoria)
     # If any filter is empty, treat as None
     marca = marca if marca else None
     submarca = submarca if submarca else None
@@ -511,7 +514,7 @@ def listar_cards(marca, submarca, tamanho):
     search_id = str(uuid.uuid4())
 
     menores_dia = lista_menores_valores_dia(categoria=categoria,marca=marca,submarca=submarca,tamanho=tamanho)
-    listagem = lista_cards(menores_dia, search_id=search_id)
+    listagem = lista_cards(menores_dia, ultima_atualizacao)
 
     return listagem
 
