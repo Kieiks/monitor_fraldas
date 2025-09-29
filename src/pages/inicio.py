@@ -26,26 +26,29 @@ layout = dmc.Paper(
                 
                 dmc.Group(
                     [
-                        dmc.Button(
-                            "Ofertas de Fraldas", 
-                            leftSection=DashIconify(icon="mdi:diaper-outline", width=24),
-                            # href="/fraldas",
-                            radius="md",
-                            size="lg",
-                            variant="outline",
-                            color="blue",
-                            style={"fontSize": 18, "padding": "10px 30px", "color": "#2980b9", "borderColor": "#2980b9"}
+                        dmc.Anchor(
+                            dmc.Button(
+                                "Ofertas de Fraldas", 
+                                leftSection=DashIconify(icon="mdi:diaper-outline", width=24),
+                                radius="md",
+                                size="lg",
+                                variant="outline",
+                                color="blue",
+                                style={"fontSize": 18, "padding": "10px 30px", "color": "#2980b9", "borderColor": "#2980b9"}
+                            ),
+                            href="/fraldas"
                         ),
-                        
-                        dmc.Button(
-                            "Ofertas de Fórmulas Infantis",
-                            leftSection=DashIconify(icon="mdi:baby-bottle-outline", width=24),
-                            # href="/aptanutri",
-                            radius="md",
-                            size="lg",
-                            variant="outline",
-                            color="blue",
-                            style={"fontSize": 18, "padding": "10px 30px", "color": "#2980b9", "borderColor": "#2980b9"}
+                        dmc.Anchor(
+                            dmc.Button(
+                                "Ofertas de Fórmulas",
+                                leftSection=DashIconify(icon="mdi:baby-bottle-outline", width=24),
+                                radius="md",
+                                size="lg",
+                                variant="outline",
+                                color="blue",
+                                style={"fontSize": 18, "padding": "10px 30px", "color": "#2980b9", "borderColor": "#2980b9"}
+                            ),
+                            href="/aptanutri"
                         ),
                     ],
                     style={"justifyContent": "center", "marginTop": 40, "marginBottom": 60, "gap": "20px"}
@@ -212,14 +215,17 @@ layout = dmc.Paper(
         
         # Call to Action Section
         dmc.Box(
-            dmc.Button(
-                "Comece a economizar agora",
-                # href="/fraldas",
-                radius="md",
-                size="xl",
-                color="blue",
-                style={"background": "#5dade2", "fontSize": 22, "display": "block", "margin": "60px auto 40px", 
-                       "padding": "15px 40px", "maxWidth": "500px"}
+            dmc.Anchor(
+                dmc.Button(
+                    "Comece a economizar agora",
+                    radius="md",
+                    size="xl",
+                    color="blue",
+                    style={"background": "#5dade2", "fontSize": 22, "display": "block", "margin": "60px auto 40px", 
+                        "padding": "15px 40px", "maxWidth": "500px"}
+                ),
+                href="/fraldas",
+                underline='never'
             ),
             style={"textAlign": "center"}
         ),
