@@ -55,7 +55,6 @@ def listagem_inicial(only_last_timestamp=True, categoria=None):
             pipeline.append({"$match": {"CATEGORIA": {"$in": categoria}}})
         else:
             pipeline.append({"$match": {"CATEGORIA": categoria}})
-
     # Suggestion: add a compound index on (CATEGORIA, MARCA, QUALIDADE, TAMANHO) for fast grouping
     pipeline.extend([
         {"$group": {

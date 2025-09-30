@@ -3,12 +3,12 @@ import dash
 from dash import Dash, _dash_renderer, html, dcc, Input, Output, State, callback, ctx
 from dash_iconify import DashIconify
 from utils.tratamento import latest_records, listagem_inicial, lista_menores_valores_dia, lowest_per_timestamp
+from utils.cached_functions import get_listagem_inicial_cached, get_lista_menores_cached
 from utils.charts import trend_chart, recomendation_chart
 from utils.filter_usage import log_filter_usage
 from utils.comprar_click import log_comprar_click
 from utils.subscription import add_subscription
-import pandas as pd
-import uuid
+from urllib.parse import quote
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -20,7 +20,9 @@ categoria = 'aptanutri'
 
 dash.register_page(__name__, path=f"/{categoria}", name=f"{categoria.capitalize()}")
 
-listagem_inicial, ultima_atualizacao = listagem_inicial(categoria=categoria)
+def get_latest_data(categoria):
+    data, timestamp = get_listagem_inicial_cached(categoria=categoria)
+    return data, timestamp
 
 selectors = dmc.Grid(
     gutter="md",
@@ -147,7 +149,13 @@ def generate_card2(row_data):
                 children=[
                     dmc.Anchor(
                         "Veja histórico de preços e todas ofertas",
-                        href=f"/product?categoria={row_data.get('CATEGORIA')}&marca={row_data.get('MARCA')}&submarca={row_data.get('QUALIDADE')}&tamanho={row_data.get('TAMANHO')}",
+                        href=(
+                            f"/product?"
+                            f"categoria={quote(str(row_data.get('CATEGORIA')))}&"
+                            f"marca={quote(str(row_data.get('MARCA')))}&"
+                            f"submarca={quote(str(row_data.get('QUALIDADE')))}&"
+                            f"tamanho={quote(str(row_data.get('TAMANHO')))}"
+                        ),
                         size="sm",
                         c="blue.6"
                     ),
@@ -318,7 +326,7 @@ def generate_card(row_data, is_best=False, search_id=None):
 
     return card
 
-def lista_cards(data, search_id=None):
+def lista_cards(data, ultima_atualizacao):
     if not data:
         return dmc.Alert("Nenhuma oferta encontrada para os filtros selecionados.", color="yellow", variant="light", mt="md")
 
@@ -387,7 +395,6 @@ def lista_cards(data, search_id=None):
 
 layout = dmc.Paper(
     children = [
-        dcc.Store(id='search-id-store'),
         dmc.Paper(
             [
                 dmc.Text(
@@ -436,7 +443,7 @@ layout = dmc.Paper(
     ]
 )
 def update_marcas(submarca, tamanho):
-    filtered = listagem_inicial
+    filtered, _ = get_latest_data(categoria)
     if submarca:
         if isinstance(submarca, list):
             filtered = [el for el in filtered if el['QUALIDADE'] in submarca]
@@ -458,7 +465,7 @@ def update_marcas(submarca, tamanho):
     ]
 )
 def update_submarcas(marca, tamanho):
-    filtered = listagem_inicial
+    filtered, _ = get_latest_data(categoria)
     if marca:
         if isinstance(marca, list):
             filtered = [el for el in filtered if el['MARCA'] in marca]
@@ -480,7 +487,7 @@ def update_submarcas(marca, tamanho):
     ]
 )
 def update_tamanhos(marca, submarca):
-    filtered = listagem_inicial
+    filtered, _ = get_latest_data(categoria)
     if marca:
         if isinstance(marca, list):
             filtered = [el for el in filtered if el['MARCA'] in marca]
@@ -503,15 +510,33 @@ def update_tamanhos(marca, submarca):
         Input(f'selector_tamanho_{categoria}','value'),
     )
 def listar_cards(marca, submarca, tamanho):
+    _, ultima_atualizacao = get_latest_data(categoria)
     # If any filter is empty, treat as None
     marca = marca if marca else None
     submarca = submarca if submarca else None
     tamanho = tamanho if tamanho else None
 
-    search_id = str(uuid.uuid4())
+    # menores_dia = get_lista_menores_cached(categoria=categoria,marca=marca,submarca=submarca,tamanho=tamanho)
+    menores_dia = get_lista_menores_cached(categoria=categoria)
+    filtered = menores_dia
 
-    menores_dia = lista_menores_valores_dia(categoria=categoria,marca=marca,submarca=submarca,tamanho=tamanho)
-    listagem = lista_cards(menores_dia, search_id=search_id)
+    if marca:
+        if isinstance(marca, list):
+            filtered = [el for el in filtered if el['MARCA'] in marca]
+        else:
+            filtered = [el for el in filtered if el['MARCA'] == marca]
+    if submarca:
+        if isinstance(submarca, list):
+            filtered = [el for el in filtered if el['QUALIDADE'] in submarca]
+        else:
+            filtered = [el for el in filtered if el['QUALIDADE'] == submarca]
+    if tamanho:
+        if isinstance(tamanho, list):
+            filtered = [el for el in filtered if el['TAMANHO'] in tamanho]
+        else:
+            filtered = [el for el in filtered if el['TAMANHO'] == tamanho]
+
+    listagem = lista_cards(filtered, ultima_atualizacao)
 
     return listagem
 

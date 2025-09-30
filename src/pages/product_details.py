@@ -9,6 +9,7 @@ from utils.comprar_click import log_comprar_click
 import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs, unquote
 
 # Register page with URL parameter pattern
 dash.register_page(
@@ -20,6 +21,8 @@ dash.register_page(
 
 # Layout for product details page with placeholders
 def layout(categoria=None, marca=None, submarca=None, tamanho=None, **kwargs):
+
+    tamanho = tamanho.replace(' ', '+')
     # Clean parameters from URL for title display
     product_title = f"{marca or 'Marca'} - {submarca or 'Submarca'} - {tamanho or 'Tamanho'}"
     
@@ -301,7 +304,7 @@ def layout(categoria=None, marca=None, submarca=None, tamanho=None, **kwargs):
                                 dmc.Grid(
                                     [
                                         dmc.GridCol(
-                                            dmc.Text("Nenhuma oferta encontrada para este produto.", italic=True, c="gray.6"),
+                                            dmc.Text("Nenhuma oferta encontrada para este produto.", c="gray.6"),
                                             span=12,
                                             style={"textAlign": "center"}
                                         )
