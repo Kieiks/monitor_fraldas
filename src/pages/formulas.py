@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 _dash_renderer._set_react_version("18.2.0")
 dmc.add_figure_templates()
 
-categoria = 'aptanutri'
+categoria = 'formulas'
 
 dash.register_page(__name__, path=f"/{categoria}", name=f"{categoria.capitalize()}")
 

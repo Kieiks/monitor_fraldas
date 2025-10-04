@@ -48,7 +48,7 @@ layout = dmc.Paper(
                                 color="blue",
                                 style={"fontSize": 18, "padding": "10px 30px", "color": "#2980b9", "borderColor": "#2980b9"}
                             ),
-                            href="/aptanutri"
+                            href="/formulas"
                         ),
                     ],
                     style={"justifyContent": "center", "marginTop": 40, "marginBottom": 60, "gap": "20px"}

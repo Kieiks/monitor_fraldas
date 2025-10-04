@@ -34,7 +34,8 @@ def layout(categoria=None, marca=None, submarca=None, tamanho=None, **kwargs):
                                              qualidade=submarca, 
                                              tamanho=tamanho)
         historical_df = pd.DataFrame(historical_data)
-        
+        historical_df = historical_df.resample('D', on='timestamp').min().ffill().reset_index()
+
         # Get current offers for this product
         current_offers = latest_records(categoria=categoria, 
                                       marca=marca, 

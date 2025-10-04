@@ -27,11 +27,11 @@ def get_navbar(pathname):
             style={"marginBottom": 6}
         ),
         dmc.NavLink(
-            label="Aptanutri",
+            label="Formulas",
             fw=600,
-            href="/aptanutri",
+            href="/formulas",
             leftSection=DashIconify(icon="game-icons:baby-bottle", width=26, color="#228be6"),
-            active=(pathname == "/aptanutri"),
+            active=(pathname == "/formulas"),
             style={"marginBottom": 6}
         ),
         # dmc.NavLink(
