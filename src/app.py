@@ -10,17 +10,17 @@ app.index_string = '''
 <html>
     <head>
         {%metas%}
-        <title>My Multi-Page Dash App</title>
+        <title>Essenciais do Bebê</title>
         {%favicon%}
         {%css%}
 
         <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-HBM16Z1J41"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-BTR7CJL1YY"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-HBM16Z1J41');
+          gtag('config', 'G-BTR7CJL1YY');
         </script>
     </head>
     <body>
