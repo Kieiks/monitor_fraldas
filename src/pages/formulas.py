@@ -106,7 +106,7 @@ def generate_card2(row_data):
                             "padding": "0px"
                         },
                         children=[
-                            dmc.Badge("Oportunidade", color="violet", variant="filled", radius="sm") if row_data.get('IS_OPPORTUNITY') else dmc.Box(),
+                            dmc.Badge("Oportunidade", color="red", variant="filled", radius="sm") if row_data.get('OPORTUNIDADE') else dmc.Box(),
                             dmc.ActionIcon(
                                 DashIconify(icon="mdi:heart-outline", width=20),
                                 variant="light",
