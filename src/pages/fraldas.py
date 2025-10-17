@@ -124,7 +124,7 @@ def generate_card2(row_data):
                     dmc.Group(
                         [
                             dmc.Badge(row_data.get('TAMANHO'), color="violet", variant="filled", radius="md"),
-                            dmc.Badge(str(row_data.get('QTD')), color="violet", variant="filled", radius="md"),
+                            dmc.Badge(int(row_data.get('QTD')), color="violet", variant="filled", radius="md"),
                         ]
                     ),
                 ],
@@ -161,7 +161,8 @@ def generate_card2(row_data):
                     ),
                     dmc.Anchor(
                         dmc.Button(
-                            "COMPRAR",
+                            "IR PARA O SITE",
+                            rightSection=DashIconify(icon="mdi:open-in-new", width=16),
                             id={'type': 'offer-btn', 'index': str(row_data.get('_id', ''))},
                             variant="filled",
                             color="blue.5",

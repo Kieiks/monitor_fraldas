@@ -281,7 +281,7 @@ def layout(categoria=None, marca=None, submarca=None, tamanho=None, **kwargs):
                                         dmc.GridCol(
                                             dmc.Anchor(
                                                 dmc.Button(
-                                                    "Ver Oferta",
+                                                    "Ir para o site",
                                                     id={"type": "offer-button", "index": str(offer.get('_id', ''))},
                                                     rightSection=DashIconify(icon="mdi:open-in-new", width=16),
                                                     size="xs",
