@@ -85,13 +85,23 @@ def generate_card2(row_data):
                     dmc.AspectRatio(
                         ratio=4/3,
                         children=[
-                            dmc.Image(
-                                src=row_data.get('IMAGEM', 'https://via.placeholder.com/150'),
-                                style={
-                                    "width": "100%",
-                                    "maxHeight": "200px",
-                                    "objectFit": "contain" # keeps proportions
-                                },
+                            dmc.Anchor(
+                                dmc.Image(
+                                    src=row_data.get('IMAGEM', 'https://via.placeholder.com/150'),
+                                    style={
+                                        "width": "100%",
+                                        "maxHeight": "200px",
+                                        "objectFit": "contain" # keeps proportions
+                                    },
+                                ),
+                                href=(
+                                    f"/product?"
+                                    f"categoria={quote(str(row_data.get('CATEGORIA')))}&"
+                                    f"marca={quote(str(row_data.get('MARCA')))}&"
+                                    f"submarca={quote(str(row_data.get('QUALIDADE')))}&"
+                                    f"tamanho={quote(str(row_data.get('TAMANHO')))}"
+                                ),
+                                target="_blank",
                             ),
                         ]
                     ),
@@ -156,6 +166,7 @@ def generate_card2(row_data):
                             f"submarca={quote(str(row_data.get('QUALIDADE')))}&"
                             f"tamanho={quote(str(row_data.get('TAMANHO')))}"
                         ),
+                        target="_blank",
                         size="sm",
                         c="blue.6"
                     ),
