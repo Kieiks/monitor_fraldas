@@ -289,7 +289,7 @@ def layout(categoria=None, marca=None, submarca=None, tamanho=None, **kwargs):
                                                     variant="outline",
                                                     color="blue",
                                                 ),
-                                                href=offer.get('URL', '#'),
+                                                href=offer.get('URL_FINAL', '#'),
                                                 target="_blank",
                                             ),
                                             span=3

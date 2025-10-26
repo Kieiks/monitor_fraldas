@@ -44,8 +44,8 @@ selectors = dmc.Grid(
             dmc.Stack([
                 dmc.MultiSelect(
                     id=f'selector_submarca_{categoria}',
-                    label='Submarca',
-                    placeholder="Selecione a submarca",
+                    label='Produto',
+                    placeholder="Selecione o produto",
                     leftSection=DashIconify(icon="mdi:label-outline", width=18),
                     required=True,
                 ),
@@ -180,7 +180,7 @@ def generate_card2(row_data):
                             radius="sm",
                             fullWidth=True,
                         ),
-                        href=row_data.get('URL', '#'),
+                        href=row_data.get('URL_FINAL', '#'),
                         target="_blank",
                         style={"width": "100%", "display": "block"}
                     )
@@ -328,7 +328,7 @@ def generate_card(row_data, is_best=False, search_id=None):
                     size="md",
                     mt=8
                 ),
-                href=row_data['URL'],
+                href=row_data['URL_FINAL'],
                 target="_blank",
                 style={"width": "100%", "display": "block"}
             ),
