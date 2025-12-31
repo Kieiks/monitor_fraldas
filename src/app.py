@@ -22,6 +22,14 @@ app.index_string = '''
           gtag('js', new Date());
           gtag('config', 'G-BTR7CJL1YY');
         </script>
+
+        <!-- Google tag (gtag.js) event -->
+        <script>
+        gtag('event', 'ads_conversion_PAGE_VIEW_1', {
+            // <event_parameters>
+        });
+        </script>
+
     </head>
     <body>
         {%app_entry%}
